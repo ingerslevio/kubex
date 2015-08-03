@@ -3,7 +3,7 @@ defmodule Kubex.Mixfile do
 
   def project do
     [app: :kubex,
-     version: "0.1.0",
+     version: "0.1.1",
      elixir: "~> 1.0",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -19,7 +19,9 @@ defmodule Kubex.Mixfile do
 
   defp deps do
     [{:httpoison, "~> 0.6"},
-     {:poison, "~> 1.4"}]
+     {:poison, "~> 1.4"},
+     {:cowboy, "~> 1.0", only: :test},
+     {:plug, "~> 0.13", only: :test}]
   end
 
   defp description do

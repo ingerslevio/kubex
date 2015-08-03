@@ -4,10 +4,6 @@ defmodule KubexTest do
   def start(_type, _args) do
     # KubexTest.Supervisor.start_link
 
-    Kubex.server_from_environment( "user_not", "needed" )
-    |> Kubex.query(:label_selector, "app=kubex-test")
-    |> Kubex.start_pinger :pinger
-
     :pg2.start()
     :pg2.create(:test_group)
 

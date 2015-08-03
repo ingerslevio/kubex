@@ -43,6 +43,11 @@ defmodule Test
     |> Kubex.start_pinger :pinger #pinger id
   end
 
+  def fetch_my_pods_from_env_server do
+    Kubex.query(:label_selector, "my=label")
+    |> Kubex.get_pods
+  end
+
 end
 ```
 
@@ -56,6 +61,28 @@ iex> Test.keep_pinging_fellow_pods
 
 `fetch_my_pods` will return the full output from kubernetes api deserialized with `Poison`. The other method `keep_pinging_fellow_pods` will start a _pinger_ which keeps pinging nodes retreived from the kubernetes API. This will make nodes aware of each other. This is discussed further in **Using Kubex with `:pg2`**
 
+`fetch_my_pods_from_env_server` will fetch pods from the server configured in `config.exs`:
+
+```elixir
+config :kubex, :server,
+  address: "http://1.1.1.1",
+  username: "myuser",
+  password: "mypass"
+```
+
+If no server `address:` is configured, then Kubix will try to resolve it from the official system environment variables.
+
+## Using `:default` pinger
+Starting from version 0.1.1 of kubex it is possible to use the `:default` pinger, which is setup through config. Add the following to `config.exs`:
+
+```elixir
+config :kubex, Kubex.Pinger,
+  enable: true,
+  label_selector: "app=kubex-test"
+```
+
+Kubex will with this setup keep pinging all pods from the kubernetes server fetched from the official system environment variables. The default pinger will, like the other queries, use the configured server address and authentication.
+
 ## Using Kubex with `:pg2`
 The continuously pinging functionality built into Kubex is a perfect tool for using `:pg2`, kubernetes and Elixir. Hosting two nodes in kubernetes with the pinger enabled will make all nodes know about each other, thus _synchronize_ `:pg2` groups between each nodes.
 
@@ -64,7 +91,14 @@ This makes kubernetes a great elastic setup for your Elixir application, since k
 For at bit more info on using `:pg2` with Elixir see [this great blog post](http://blog.jonharrington.org/elixir-and-docker/) by Jonathan Harrington.
 
 ## Testing
-The current tests are written as integration/system tests and there is no test built into the suite, since all the _tests_ run in a local kubetnetes cluster. The Kubex tests has been run on a OS X with boot2docker, but it should run mostly anywhere with the following requirements:
+There are two kind of tests for Kubex; a set of integration tests of the query system with a mocked kubernetes API and a set of full system tests with deployed docker images running an app with Kubex.
+The integration tests a easy to run:
+
+```bash
+kubex/ > mix test
+```
+
+The system tests run in a local kubetnetes cluster. These tests has been run on a OS X with boot2docker, but it should run mostly anywhere with the following requirements:
 
 * elixir `> 1.0`
 * docker `> 1.7`
